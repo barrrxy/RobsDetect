@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Robot Si Penebak</title>
+
+<style>
+
+/* =====================================================
+   DASAR
+===================================================== */
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    color:white;
+    min-height:100vh;
+    background:#050816;
+    overflow-x:hidden;
+}
+
+/* =====================================================
+   BACKGROUND DIGITAL
+===================================================== */
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-3;
+
+    background-image:
+        linear-gradient(
+            rgba(80,120,255,.08) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(80,120,255,.08) 1px,
+            transparent 1px
+        );
+
+    background-size:40px 40px;
+}
+
+body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-2;
+
+    background:
+        radial-gradient(
+            circle at 20% 20%,
+            rgba(0,140,255,.16),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 80% 30%,
+            rgba(120,0,255,.14),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 50% 90%,
+            rgba(0,200,255,.10),
+            transparent 30%
+        );
+}
+
+/* =====================================================
+   CONTAINER
+===================================================== */
+
+.container{
+    width:92%;
+    max-width:900px;
+    margin:auto;
+}
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+header{
+    text-align:center;
+    padding:45px 15px 25px;
+}
+
+.robot-logo{
+    width:120px;
+    height:120px;
+    object-fit:cover;
+    border-radius:50%;
+    border:3px solid rgba(70,170,255,.8);
+
+    box-shadow:
+        0 0 25px rgba(0,150,255,.35);
+
+    margin-bottom:18px;
+}
+
+header h1{
+    font-size:30px;
+    margin-bottom:8px;
+}
+
+header p{
+    color:#aebbd5;
+    font-size:14px;
+}
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.card{
+    background:rgba(10,18,40,.88);
+
+    border:1px solid rgba(90,150,255,.2);
+
+    border-radius:18px;
+
+    padding:22px;
+
+    margin-bottom:18px;
+
+    box-shadow:
+        0 10px 35px rgba(0,0,0,.25);
+}
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+.guess-box{
+    text-align:center;
+    margin-bottom:18px;
+}
+
+.guess-box h2{
+    font-size:21px;
+    margin-bottom:8px;
+}
+
+.guess-box p{
+    color:#8998b7;
+    font-size:13px;
+    line-height:1.6;
+}
+
+.search-box{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.search-box input{
+    flex:1;
+    min-width:200px;
+
+    padding:14px 16px;
+
+    border:none;
+    outline:none;
+
+    border-radius:12px;
+
+    background:#111c38;
+
+    color:white;
+
+    font-size:15px;
+}
+
+.search-box input::placeholder{
+    color:#71809d;
+}
+
+.search-box button{
+    border:none;
+    cursor:pointer;
+
+    padding:14px 18px;
+
+    border-radius:12px;
+
+    background:#287cff;
+
+    color:white;
+
+    font-size:14px;
+    font-weight:bold;
+
+    transition:.2s;
+}
+
+.search-box button:hover{
+    transform:translateY(-1px);
+    background:#1769e8;
+}
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+#status{
+    margin-top:14px;
+
+    color:#aebbd5;
+
+    font-size:14px;
+
+    min-height:20px;
+
+    text-align:center;
+}
+
+/* =====================================================
+   RESULT
+===================================================== */
+
+#result{
+    display:none;
+}
+
+.result-title{
+    font-size:20px;
+    margin-bottom:18px;
+}
+
+.result-title span{
+    color:#55a8ff;
+}
+
+/* =====================================================
+   CATEGORY
+===================================================== */
+
+.info-category{
+    margin-top:22px;
+}
+
+.info-category:first-child{
+    margin-top:0;
+}
+
+.info-category h3{
+    font-size:16px;
+
+    color:#55a8ff;
+
+    margin-bottom:10px;
+
+    padding-bottom:8px;
+
+    border-bottom:
+        1px solid
+        rgba(90,150,255,.15);
+}
+
+/* =====================================================
+   INFO LIST
+===================================================== */
+
+.info-list{
+    display:grid;
+    gap:8px;
+}
+
+.info-row{
+    display:flex;
+
+    justify-content:space-between;
+
+    gap:15px;
+
+    padding:11px 13px;
+
+    background:#0c1630;
+
+    border-radius:10px;
+
+    font-size:13px;
+}
+
+.info-row .label{
+    color:#7f91b4;
+}
+
+.info-row .value{
+    text-align:right;
+
+    color:#eaf1ff;
+
+    word-break:break-word;
+
+    max-width:60%;
+}
+
+/* =====================================================
+   VERIFIED BADGE
+===================================================== */
+
+.verified{
+    position:relative;
+
+    display:inline-block;
+
+    width:22px;
+    height:22px;
+
+    margin-left:5px;
+
+    vertical-align:-5px;
+
+    background:#3797f0;
+
+    clip-path:polygon(
+        50% 0%,
+        61% 7%,
+        74% 4%,
+        81% 16%,
+        94% 20%,
+        91% 33%,
+        100% 45%,
+        93% 57%,
+        96% 70%,
+        83% 77%,
+        79% 91%,
+        65% 88%,
+        53% 100%,
+        42% 92%,
+        28% 96%,
+        23% 82%,
+        9% 77%,
+        10% 63%,
+        0% 51%,
+        8% 39%,
+        5% 26%,
+        18% 20%,
+        24% 7%,
+        38% 9%
+    );
+
+    filter:
+        drop-shadow(
+            0 1px 3px
+            rgba(0,0,0,.35)
+        );
+}
+
+.verified::before{
+    content:"";
+
+    position:absolute;
+
+    left:50%;
+    top:50%;
+
+    width:9px;
+    height:5px;
+
+    border-left:2.5px solid white;
+    border-bottom:2.5px solid white;
+
+    transform:
+        translate(-50%,-65%)
+        rotate(-45deg);
+}
+
+/* =====================================================
+   VISITOR
+===================================================== */
+
+.visitor{
+    text-align:center;
+}
+
+.visitor-number{
+    font-size:35px;
+    font-weight:bold;
+
+    color:#55a8ff;
+
+    margin:8px 0;
+}
+
+.visitor p{
+    color:#8998b7;
+    font-size:13px;
+}
+
+/* =====================================================
+   FITUR MENDATANG
+===================================================== */
+
+.feature-title{
+    font-size:20px;
+    margin-bottom:16px;
+}
+
+.feature-list{
+    display:grid;
+    gap:10px;
+}
+
+.feature-item{
+    padding:14px;
+
+    border-radius:12px;
+
+    background:#0c1630;
+
+    border:1px solid rgba(90,150,255,.12);
+}
+
+.feature-item strong{
+    display:block;
+    margin-bottom:5px;
+}
+
+.feature-item p{
+    color:#8998b7;
+    font-size:13px;
+    line-height:1.5;
+}
+
+.development{
+    margin-top:16px;
+
+    text-align:center;
+
+    color:#71809d;
+
+    font-size:13px;
+}
+
+/* =====================================================
+   CREATOR
+===================================================== */
+
+.creator{
+    text-align:center;
+}
+
+.creator-img{
+    width:90px;
+    height:90px;
+
+    object-fit:cover;
+
+    border-radius:50%;
+
+    border:2px solid #3797f0;
+
+    margin-bottom:12px;
+}
+
+.creator h2{
+    font-size:19px;
+    margin-bottom:6px;
+}
+
+.creator-role{
+    color:#55a8ff;
+    font-size:13px;
+    margin-bottom:14px;
+}
+
+.creator-text{
+    color:#aebbd5;
+
+    font-size:14px;
+
+    line-height:1.7;
+}
+
+/* =====================================================
+   CONTACT
+===================================================== */
+
+.contact-card{
+    overflow:hidden;
+}
+
+.contact-title{
+    font-size:20px;
+    margin-bottom:8px;
+}
+
+.contact-message{
+    color:#8998b7;
+    font-size:13px;
+    line-height:1.6;
+    margin-bottom:18px;
+}
+
+.contact-list{
+    display:grid;
+    gap:10px;
+}
+
+.contact-item{
+    display:flex !important;
+    align-items:center;
+    gap:12px;
+
+    padding:13px 14px;
+
+    border-radius:12px;
+
+    text-decoration:none;
+
+    color:#fff !important;
+
+    background:#0c1630;
+
+    border:1px solid rgba(90,150,255,.12);
+
+    transition:.2s;
+}
+
+.contact-item:hover{
+    transform:translateY(-2px);
+    background:#132246;
+}
+
+.contact-icon{
+    width:40px;
+    height:40px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    flex-shrink:0;
+
+    border-radius:11px;
+
+    font-size:21px;
+    font-weight:bold;
+
+    background:#182544;
+}
+
+.contact-info{
+    flex:1;
+
+    display:flex;
+    flex-direction:column;
+
+    gap:3px;
+}
+
+.contact-info strong{
+    font-size:14px;
+}
+
+.contact-info small{
+    color:#8998b7;
+    font-size:12px;
+}
+
+.contact-arrow{
+    font-size:25px;
+    color:#71809d;
+}
+
+.contact-item.instagram .contact-icon{
+    background:linear-gradient(
+        135deg,
+        #833ab4,
+        #fd1d1d,
+        #fcb045
+    );
+}
+
+.contact-item.tiktok .contact-icon{
+    background:#111;
+
+    text-shadow:
+        2px 2px #25f4ee,
+        -2px -2px #fe2c55;
+}
+
+.contact-item.email .contact-icon{
+    background:#287cff;
+}
+
+.contact-item.whatsapp .contact-icon{
+    background:#25d366;
+}
+
+.contact-item.bug .contact-icon{
+    background:#e04b4b;
+}
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+footer{
+    text-align:center;
+
+    padding:25px 15px 35px;
+
+    color:#61708d;
+
+    font-size:12px;
+
+    line-height:1.7;
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:600px){
+
+    header{
+        padding-top:35px;
+    }
+
+    header h1{
+        font-size:25px;
+    }
+
+    .robot-logo{
+        width:105px;
+        height:105px;
+    }
+
+    .card{
+        padding:18px;
+    }
+
+    .info-row{
+        flex-direction:column;
+        gap:5px;
+    }
+
+    .info-row .value{
+        text-align:left;
+        max-width:100%;
+    }
+
+    .search-box{
+        flex-direction:column;
+    }
+
+    .search-box input,
+    .search-box button{
+        width:100%;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- =================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+    <img
+        src="assets/robot.jpg"
+        class="robot-logo"
+        alt="Robot Si Penebak"
+    >
+
+    <h1>
+        🤖 Robot Si Penebak
+    </h1>
+
+    <p>
+        Robot pintar yang akan menebak informasi
+        perangkat yang sedang Anda gunakan.
+    </p>
+
+</header>
+
+
+<!-- =================================================
+     SEARCH
+===================================================== -->
+
+<section class="card">
+
+    <div class="guess-box">
+
+        <h2>
+            🔮 Siap Saya Tebak?
+        </h2>
+
+        <p>
+            Masukkan nama Anda terlebih dahulu,
+            kemudian biarkan Robot Si Penebak
+            menebak informasi HP yang sedang Anda gunakan.
+        </p>
+
+    </div>
+
+
+    <div class="search-box">
+
+        <input
+            type="text"
+            id="nameInput"
+            placeholder="Masukkan nama Anda..."
+            autocomplete="off"
+        >
+
+        <button onclick="detectDevice()">
+            🔮 Saya Akan Menebak
+        </button>
+
+    </div>
+
+
+    <div id="status"></div>
+
+</section>
+
+
+<!-- =================================================
+     RESULT
+===================================================== -->
+
+<section
+    class="card"
+    id="result"
+>
+
+    <h2 class="result-title">
+
+        📱 Hasil Tebakan untuk:
+        <span id="resultName">-</span>
+
+    </h2>
+
+
+    <!-- IDENTITAS -->
+
+    <div class="info-category">
+
+        <h3>
+            📱 Identitas Perangkat
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">Perangkat</span>
+                <span class="value" id="device">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Platform</span>
+                <span class="value" id="platform">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Sistem Operasi</span>
+                <span class="value" id="os">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">User Agent</span>
+                <span class="value" id="userAgent">-</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- BROWSER -->
+
+    <div class="info-category">
+
+        <h3>
+            🌐 Browser
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">Browser</span>
+                <span class="value" id="browser">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Bahasa</span>
+                <span class="value" id="language">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Locale</span>
+                <span class="value" id="locale">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Cookie</span>
+                <span class="value" id="cookie">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">JavaScript</span>
+                <span class="value">Aktif</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Secure Context</span>
+                <span class="value" id="secure">-</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- HARDWARE -->
+
+    <div class="info-category">
+
+        <h3>
+            🧠 Hardware
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">RAM Perkiraan</span>
+                <span class="value" id="ram">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">CPU / Logical Core</span>
+                <span class="value" id="cpu">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">GPU</span>
+                <span class="value" id="gpu">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Device Memory API</span>
+                <span class="value" id="memoryAPI">-</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- LAYAR -->
+
+    <div class="info-category">
+
+        <h3>
+            🖥️ Layar
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">Resolusi Layar</span>
+                <span class="value" id="screen">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Viewport</span>
+                <span class="value" id="viewport">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Device Pixel Ratio</span>
+                <span class="value" id="pixelRatio">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Kedalaman Warna</span>
+                <span class="value" id="colorDepth">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Orientasi</span>
+                <span class="value" id="orientation">-</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- BATERAI -->
+
+    <div class="info-category">
+
+        <h3>
+            🔋 Baterai
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">Level Baterai</span>
+                <span class="value" id="battery">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Status Charging</span>
+                <span class="value" id="charging">-</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- JARINGAN -->
+
+    <div class="info-category">
+
+        <h3>
+            📡 Jaringan
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">Status Internet</span>
+                <span class="value" id="online">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Tipe Koneksi</span>
+                <span class="value" id="connection">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Downlink</span>
+                <span class="value" id="downlink">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">RTT</span>
+                <span class="value" id="rtt">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Data Saver</span>
+                <span class="value" id="saveData">-</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- INPUT -->
+
+    <div class="info-category">
+
+        <h3>
+            👆 Input & Sensor
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">Touch Points</span>
+                <span class="value" id="touch">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Touch Support</span>
+                <span class="value" id="touchSupport">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Pointer</span>
+                <span class="value" id="pointer">-</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- WAKTU -->
+
+    <div class="info-category">
+
+        <h3>
+            🌍 Waktu & Lokasi
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">Zona Waktu</span>
+                <span class="value" id="timezone">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Waktu Lokal</span>
+                <span class="value" id="localTime">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Lokasi</span>
+                <span class="value" id="location">Belum diberikan izin</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- STORAGE -->
+
+    <div class="info-category">
+
+        <h3>
+            💾 Penyimpanan Browser
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">Storage API</span>
+                <span class="value" id="storage">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">IndexedDB</span>
+                <span class="value" id="indexedDB">-</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- TEKNIS -->
+
+    <div class="info-category">
+
+        <h3>
+            🛡️ Informasi Teknis
+        </h3>
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="label">HTTPS</span>
+                <span class="value" id="https">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Online</span>
+                <span class="value" id="online2">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">WebGL</span>
+                <span class="value" id="webgl">-</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Referrer</span>
+                <span class="value" id="referrer">-</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =================================================
+     VISITOR
+===================================================== -->
+
+<section class="card visitor">
+
+    <h2>
+        👥 Pengunjung
+    </h2>
+
+    <div class="visitor-number">
+        1.000+
+    </div>
+
+    <p>
+        Jumlah pengunjung yang telah mencoba prototype ini.
+    </p>
+
+</section>
+
+
+<!-- =================================================
+     FITUR MENDATANG
+===================================================== -->
+
+<section class="card">
+
+    <h2 class="feature-title">
+        🚀 Fitur Mendatang
+    </h2>
+
+    <div class="feature-list">
+
+        <div class="feature-item">
+
+            <strong>
+                📍 Pelacak HP
+            </strong>
+
+            <p>
+                Pelacakan perangkat milik sendiri atau
+                perangkat yang telah memberikan izin.
+            </p>
+
+        </div>
+
+
+        <div class="feature-item">
+
+            <strong>
+                📱 Detail Perangkat
+            </strong>
+
+            <p>
+                Informasi perangkat yang lebih lengkap
+                akan dikembangkan secara bertahap.
+            </p>
+
+        </div>
+
+
+        <div class="feature-item">
+
+            <strong>
+                ⚡ Status Perangkat
+            </strong>
+
+            <p>
+                Menampilkan berbagai status perangkat
+                yang dapat dibaca oleh browser.
+            </p>
+
+        </div>
+
+
+        <div class="feature-item">
+
+            <strong>
+                🛡️ Keamanan Perangkat
+            </strong>
+
+            <p>
+                Fitur keamanan dan pemeriksaan perangkat
+                akan dikembangkan pada versi berikutnya.
+            </p>
+
+        </div>
+
+
+        <div class="feature-item">
+
+            <strong>
+                🤖 Robot Lebih Pintar
+            </strong>
+
+            <p>
+                Kemampuan robot akan terus dikembangkan
+                agar dapat memberikan informasi yang lebih baik.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="development">
+
+        🚧 Beberapa fitur masih dalam tahap pengembangan.
+        Akan terus di-update.
+
+    </div>
+
+</section>
+
+
+<!-- =================================================
+     CREATOR
+===================================================== -->
+
+<section class="card creator">
+
+    <img
+        src="assets/creator.jpg"
+        class="creator-img"
+        alt="Akbar Idhofi"
+    >
+
+    <h2>
+
+        Akbar Idhofi
+
+        <span
+            class="verified"
+            title="Verified"
+        ></span>
+
+    </h2>
+
+    <div class="creator-role">
+        Developer
+    </div>
+
+    <p class="creator-text">
+
+        Teknologi mengajarkan kita untuk menciptakan,
+        psikologi mengajarkan kita untuk memahami diri.
+        Jangan takut gagal, karena setiap kesalahan adalah
+        pelajaran. Teruslah mencoba dan berkembang,
+        karena sesuatu yang kecil hari ini bisa menjadi
+        sesuatu yang besar di masa depan.
+
+    </p>
+
+</section>
+
+
+<!-- =================================================
+     CONTACT
+===================================================== -->
+
+<section class="card contact-card">
+
+    <h2 class="contact-title">
+        📞 Hubungi Developer
+    </h2>
+
+    <p class="contact-message">
+
+        💬 Punya pertanyaan, saran, atau menemukan bug?
+        Silakan hubungi saya melalui salah satu kontak di bawah.
+        Terima kasih sudah mencoba Robot Si Penebak! 🤖
+
+    </p>
+
+    <div class="contact-list">
+
+        <a
+            class="contact-item instagram"
+            href="https://instagram.com/barr_0a"
+            target="_blank"
+        >
+
+            <span class="contact-icon">
+                ◎
+            </span>
+
+            <span class="contact-info">
+
+                <strong>
+                    Instagram
+                </strong>
+
+                <small>
+                    @barr_0a
+                </small>
+
+            </span>
+
+            <span class="contact-arrow">
+                ›
+            </span>
+
+        </a>
+
+
+        <a
+            class="contact-item tiktok"
+            href="https://www.tiktok.com/@wongedannn_"
+            target="_blank"
+        >
+
+            <span class="contact-icon">
+                ♪
+            </span>
+
+            <span class="contact-info">
+
+                <strong>
+                    TikTok
+                </strong>
+
+                <small>
+                    @wongedannn_
+                </small>
+
+            </span>
+
+            <span class="contact-arrow">
+                ›
+            </span>
+
+        </a>
+
+
+        <a
+            class="contact-item email"
+            href="mailto:barrrxy@gmail.com"
+        >
+
+            <span class="contact-icon">
+                ✉
+            </span>
+
+            <span class="contact-info">
+
+                <strong>
+                    Email
+                </strong>
+
+                <small>
+                    barrrxy@gmail.com
+                </small>
+
+            </span>
+
+            <span class="contact-arrow">
+                ›
+            </span>
+
+        </a>
+
+
+        <a
+            class="contact-item whatsapp"
+            href="https://wa.me/6285704309385"
+            target="_blank"
+        >
+
+            <span class="contact-icon">
+                ◉
+            </span>
+
+            <span class="contact-info">
+
+                <strong>
+                    WhatsApp
+                </strong>
+
+                <small>
+                    Hubungi via WhatsApp
+                </small>
+
+            </span>
+
+            <span class="contact-arrow">
+                ›
+            </span>
+
+        </a>
+
+
+        <a
+            class="contact-item bug"
+            href="mailto:barrrxy@gmail.com?subject=Laporan%20Bug%20Robot%20Si%20Penebak"
+        >
+
+            <span class="contact-icon">
+                ⚠
+            </span>
+
+            <span class="contact-info">
+
+                <strong>
+                    Laporan Bug
+                </strong>
+
+                <small>
+                    Laporkan masalah pada website
+                </small>
+
+            </span>
+
+            <span class="contact-arrow">
+                ›
+            </span>
+
+        </a>
+
+    </div>
+
+</section>
+
+
+<!-- =================================================
+     FOOTER
+===================================================== -->
+
+<footer>
+
+    🤖 Robot Si Penebak — Prototype
+
+    <br>
+
+    Made with ❤️ by Akbar Idhofi
+
+</footer>
+
+</div>
+
+
+<script src="js/chat.js"></script>
+
+</body>
+</html>
